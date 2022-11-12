@@ -1,47 +1,41 @@
 import requests
 from datetime import date
 from bs4 import BeautifulSoup
+import random
 
 # Comic-Img Grab inspired by this gist - https://gist.github.com/lawrenceccheung/1a92c3d02e0a314bc8f58ff4d8ab13c4
-def GrabImage():
-    # Set the headers
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Max-Age': '3600',
-        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
-        }
 
-    # Set the date to grab the comic
-    year = date.today().year
-    month = date.today().month
-    day = date.today().day
+def GrabImage():
+    # Set the headers - This is to prevent Cloudflare issues
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0'
+    }
 
     # The url of the comic strip
-    url=f"https://www.gocomics.com/calvinandhobbes/{year}/{month}/{day}"
+    rootUrl="https://wallpapercave.com/"
+    url=f"{rootUrl}/calvin-and-hobbes-desktop-wallpaper"
 
     # What file to save it as
-    savefile=f"calvinhobbes_{year}_{month}_{day}.jpg"
+    savefile=f"calvinhobbes_daily.jpg"
 
     # Request the page
-    req = requests.get(url, headers)
+    req = requests.get(url,headers=headers)
     soup = BeautifulSoup(req.content, 'html.parser')
 
-
     # Get all links with the lazyload img-fluid class
-    links=soup.find_all(class_="img-fluid")
+    links=soup.find_all(class_="wimg")
 
-    picurl = ""
-    searchstring='Calvin and Hobbes Comic Strip' # Search string is the alt-text for the image.
     # Search for the "Calvin and Hobbes Comic Strip" image
-    for link in links:
-        if searchstring in link['alt']:
-            # Get the url of the image
-            picurl=link['src']
-            # print(picurl)
+    images = []
+    for image in links:
+        images.append(rootUrl+image['src'])
 
-    # # Save the file
-    r = requests.get(picurl, allow_redirects=True)
+    # Grab a random image
+    pic = images.pop(random.randint(0,random.randint(0,len(images)-1)))
+
+    # Save the file
+    r = requests.get(pic, allow_redirects=True)
     open(savefile, 'wb').write(r.content)
+
+    # Return the name of the savefile
     return savefile
